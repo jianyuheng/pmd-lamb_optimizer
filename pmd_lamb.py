@@ -68,10 +68,12 @@ class LAMBOptimizer(tf.train.Optimizer):
           dtype=tf.float32,
           trainable=False,
           initializer=tf.zeros_initializer())
-
+    
       t = tf.cast(global_step + 1, tf.float32)
-      T = 200
-      zeta = tf.math.cos((math.pi / 2) * (t % T) / T)
+      T = tf.cast(200, tf.float32)
+      warmup_steps = tf.cast(20000, tf.float32)                                               
+      zeta = tf.cond(t < warmup_steps, lambda: 1.0, lambda: tf.math.cos((math.pi / 2) * (t % T) / T))
+      
       # Standard Adam update.
       next_m = (
           tf.multiply(self.beta_1 * zeta, m) + tf.multiply(1.0 - self.beta_1, grad))
